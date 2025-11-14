@@ -1,9 +1,10 @@
 require('dotenv').config();
 const app = require('./src/app');
+const config = require('./src/config/environment');
 const { connectMongoDB } = require('./src/config/database');
 const { sequelize } = require('./src/config/database');
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.PORT;
 
 // Initialize databases and start server
 const startServer = async () => {

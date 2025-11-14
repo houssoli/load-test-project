@@ -4,6 +4,7 @@ const cors = require('cors');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
+const config = require('./config/environment');
 const mongoRoutes = require('./routes/mongoRoutes');
 const postgresRoutes = require('./routes/postgresRoutes');
 const { errorHandler } = require('./middlewares/errorHandler');
@@ -27,8 +28,8 @@ app.use(requestLogger);
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX_REQUESTS,
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
