@@ -65,6 +65,34 @@ choco install k6
 
 ### 2. Database Setup
 
+#### Option A: Using Docker Compose (Recommended) 🐳
+
+**Start all services (MongoDB, PostgreSQL, and Backend):**
+```bash
+# Start all services in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Check service status
+docker-compose ps
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+
+# Rebuild backend after code changes
+docker-compose up -d --build backend
+
+# Start only databases (run backend locally)
+docker-compose up -d mongodb postgres
+```
+
+#### Option B: Manual Database Setup
+
 **MongoDB:**
 ```bash
 # Start MongoDB
@@ -81,9 +109,9 @@ pg_ctl -D /usr/local/var/postgres start
 
 # Or using Docker
 docker run -d -p 5432:5432 --name postgres \
-  -e POSTGRES_PASSWORD=yourpassword \
+  -e POSTGRES_PASSWORD=postgres123 \
   -e POSTGRES_DB=loadtest_db \
-  postgres:latest
+  postgres:16-alpine
 
 # Create database
 psql -U postgres
@@ -93,17 +121,31 @@ CREATE DATABASE loadtest_db;
 ### 3. Configure Environment
 
 ```bash
-# Copy environment template
-cp .env.example .env
+# Copy environment template (only needed for local development)
+cp backend/.env.example backend/.env
 
 # Edit .env with your database credentials
-nano .env
+nano backend/.env
 ```
+
+**Note:** When using docker-compose, environment variables are configured in `docker-compose.yml`.
 
 ### 4. Run the Application
 
+#### With Docker Compose:
 ```bash
-# Start backend in development mode
+# All services (recommended)
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+#### Without Docker (Local Development):
+```bash
+# Navigate to backend directory
+cd backend
+
+# Start in development mode (with auto-reload)
 npm run dev
 
 # Or in production mode
@@ -124,7 +166,27 @@ curl http://localhost:3000/health
 
 ## 🧪 Running Load Tests
 
-### Basic Commands
+### Quick Smoke Test
+
+Run a quick smoke test to verify everything is working:
+
+```bash
+# Simple smoke test (1 VU, 30 seconds)
+k6 run --vus 1 --duration 30s backend/tests/k6-smoke-test.js
+
+# Expected results:
+# ✓ All checks passing (100%)
+# ✓ Response times p(95) < 500ms
+# ✓ Error rate < 1%
+```
+
+**What the smoke test validates:**
+- Health endpoint responds correctly
+- MongoDB API is accessible and working
+- PostgreSQL API is accessible and working
+- Basic CRUD operations function properly
+
+### Comprehensive Test Scenarios
 
 ```bash
 cd k6-tests
@@ -242,14 +304,70 @@ thresholds: {
 }
 ```
 
-## 📦 Project Structure
+## � Docker Setup
+
+This project includes a complete Docker Compose configuration for easy deployment and testing.
+
+### Services Included
+
+- **MongoDB**: NoSQL database (port 27017)
+- **PostgreSQL**: Relational database (port 5432)
+- **Backend**: Node.js API server (port 3000)
+
+### Quick Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs (all services)
+docker-compose logs -f
+
+# View logs (specific service)
+docker-compose logs -f backend
+
+# Check service status
+docker-compose ps
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (fresh start)
+docker-compose down -v
+
+# Rebuild after code changes
+docker-compose up -d --build backend
+
+# Restart a specific service
+docker-compose restart backend
+
+# Start only databases (useful for local backend development)
+docker-compose up -d mongodb postgres
+```
+
+### Development Workflow Options
+
+**Option 1: Full Docker Stack (Recommended for testing)**
+```bash
+docker-compose up -d
+# All services running in containers
+```
+
+**Option 2: Hybrid (Useful for backend development)**
+```bash
+docker-compose up -d mongodb postgres  # Databases in Docker
+cd backend && npm run dev              # Backend runs locally with hot-reload
+```
+
+## �📦 Project Structure
 
 ```
 load-test-project/
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── database.js           # DB connections
+│   │   │   ├── database.js           # DB connections
+│   │   │   └── environment.js        # Environment config
 │   │   ├── controllers/
 │   │   │   ├── mongoController.js    # MongoDB logic
 │   │   │   └── postgresController.js # PostgreSQL logic
@@ -268,8 +386,12 @@ load-test-project/
 │   │   │   ├── mongoService.js       # MongoDB operations
 │   │   │   └── postgresService.js    # PostgreSQL operations
 │   │   └── app.js                    # Express setup
+│   ├── tests/
+│   │   └── k6-smoke-test.js          # Quick smoke test
 │   ├── .env                          # Environment variables
 │   ├── .env.example                  # Environment template
+│   ├── .dockerignore                 # Docker build exclusions
+│   ├── Dockerfile                    # Backend container image
 │   ├── package.json                  # Dependencies
 │   └── server.js                     # Entry point
 ├── k6-tests/
@@ -277,8 +399,12 @@ load-test-project/
 │   │   ├── mongo-load-test.js        # MongoDB tests
 │   │   ├── postgres-load-test.js     # PostgreSQL tests
 │   │   └── combined-load-test.js     # Combined tests
+│   ├── utils/
+│   │   └── config.js                 # Shared K6 test config
 │   ├── results/                      # Test results (gitignored)
 │   └── run-tests.sh                  # Test runner script
+├── docker-compose.yml                # Multi-service orchestration
+├── .gitignore                        # Git exclusions
 └── README.md
 ```
 
