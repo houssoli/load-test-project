@@ -1,0 +1,83 @@
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: loadtest_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: loadtest_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - loadtest_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Service
+  postgres:
+    image: postgres:16-alpine
+    container_name: loadtest_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: loadtest_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - loadtest_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: loadtest_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/loadtest_db
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DATABASE: loadtest_db
+      PG_USER: postgres
+      PG_PASSWORD: postgres123
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - loadtest_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  loadtest_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  postgres_data:
+    driver: local
