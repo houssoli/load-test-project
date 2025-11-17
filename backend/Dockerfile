@@ -22,6 +22,11 @@ RUN npm ci
 # Copy source code
 COPY src ./src
 
+# 🔍 Type-check the TypeScript code BEFORE building
+# This fails the build if there are any type errors
+# Catches issues early in the CI/CD pipeline
+RUN npm run type-check
+
 # Build TypeScript to JavaScript
 # This creates the /app/dist directory
 RUN npm run build
