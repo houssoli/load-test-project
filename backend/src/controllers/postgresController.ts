@@ -155,6 +155,53 @@ class PostgresController {
     }
   }
 
+  async getProductsByPriceRange(
+    req: Request,
+    res: TypedResponse<IProduct[]>,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const minPrice = parseFloat(req.query.min as string) || 0;
+      const maxPrice = parseFloat(req.query.max as string) || Number.MAX_SAFE_INTEGER;
+      
+      if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid price range. Min and max must be positive numbers, and min must be less than max.',
+        });
+        return;
+      }
+
+      const products = await postgresService.getProductsByPriceRange(minPrice, maxPrice);
+      
+      res.json({
+        success: true,
+        data: products,
+        message: `Found ${products.length} products in price range $${minPrice}-$${maxPrice}`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getProductStats(
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const stats = await postgresService.getProductStats();
+      
+      res.json({
+        success: true,
+        data: stats,
+        message: 'Product statistics by category',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async testConnection(
     _req: Request,
     res: Response,
