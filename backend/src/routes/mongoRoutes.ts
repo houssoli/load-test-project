@@ -30,6 +30,7 @@ router.get('/users', (req, res, next) => mongoController.getAllUsers(req, res, n
 router.get('/users/search', (req, res, next) => mongoController.searchUsers(req, res, next));
 router.get('/users/stats', (req, res, next) => mongoController.getUserStats(req, res, next));
 router.get('/users/:id', (req, res, next) => mongoController.getUserById(req, res, next));
+router.put('/users/:id', (req, res, next) => mongoController.updateUser(req, res, next));
 router.patch('/users/:id', (req, res, next) => mongoController.updateUser(req, res, next));
 router.delete('/users/:id', (req, res, next) => mongoController.deleteUser(req, res, next));
 

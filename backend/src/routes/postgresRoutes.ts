@@ -21,6 +21,7 @@ router.get('/products/stats', (req, res, next) => postgresController.getProductS
 
 // Generic ID-based routes come last
 router.get('/products/:id', (req, res, next) => postgresController.getProductById(req, res, next));
+router.put('/products/:id', (req, res, next) => postgresController.updateProduct(req, res, next));
 router.patch('/products/:id', (req, res, next) => postgresController.updateProduct(req, res, next));
 router.delete('/products/:id', (req, res, next) => postgresController.deleteProduct(req, res, next));
 
