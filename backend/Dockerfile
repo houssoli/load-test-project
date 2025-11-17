@@ -36,6 +36,9 @@ RUN npm run build
 # ======================================
 FROM node:18-alpine
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Set working directory
 WORKDIR /app
 
