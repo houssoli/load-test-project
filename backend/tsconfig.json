@@ -1,0 +1,73 @@
+{
+  "compilerOptions": {
+    /* 🎯 Language and Environment */
+    "target": "ES2020",                          // Compile to ES2020 (modern JavaScript)
+    "lib": ["ES2020"],                           // Use ES2020 standard library
+    "module": "commonjs",                        // Use CommonJS modules (required for Node.js)
+    "moduleResolution": "node",                  // Use Node.js module resolution
+    
+    /* 📁 Modules & Paths */
+    "rootDir": "./src",                          // Source files are in src/
+    "outDir": "./dist",                          // Compiled files go to dist/
+    "baseUrl": "./src",                          // Base directory for non-relative imports
+    "paths": {                                   // Path aliases for cleaner imports
+      "@/config/*": ["config/*"],
+      "@/models/*": ["models/*"],
+      "@/controllers/*": ["controllers/*"],
+      "@/services/*": ["services/*"],
+      "@/middlewares/*": ["middlewares/*"],
+      "@/routes/*": ["routes/*"],
+      "@/types/*": ["types/*"]
+    },
+    
+    /* ✅ Type Checking - STRICT MODE ENABLED */
+    "strict": true,                              // Enable ALL strict type-checking options
+    "noImplicitAny": true,                       // Error on expressions with an implied 'any' type
+    "strictNullChecks": true,                    // Strict null and undefined checking
+    "strictFunctionTypes": true,                 // Strict checking of function types
+    "strictBindCallApply": true,                 // Strict checking of bind, call, and apply
+    "strictPropertyInitialization": true,        // Ensure class properties are initialized
+    "noImplicitThis": true,                      // Error when 'this' has an implicit 'any' type
+    "alwaysStrict": true,                        // Parse files in strict mode
+    
+    /* 🔍 Additional Checks */
+    "noUnusedLocals": true,                      // Report errors on unused local variables
+    "noUnusedParameters": true,                  // Report errors on unused parameters
+    "noImplicitReturns": true,                   // Report error when not all paths return a value
+    "noFallthroughCasesInSwitch": true,         // Report errors for fallthrough cases in switch
+    "noUncheckedIndexedAccess": false,          // Don't add undefined to index signatures (too strict for now)
+    
+    /* 🔧 Emit & Interoperability */
+    "declaration": true,                         // Generate .d.ts files
+    "declarationMap": true,                      // Generate sourcemaps for .d.ts files
+    "sourceMap": true,                           // Generate .map files for debugging
+    "removeComments": false,                     // Keep comments in compiled code
+    "esModuleInterop": true,                     // Enable interop between CommonJS and ES Modules
+    "allowSyntheticDefaultImports": true,        // Allow default imports from modules with no default export
+    "forceConsistentCasingInFileNames": true,   // Ensure consistent casing in imports
+    "resolveJsonModule": true,                   // Allow importing .json files
+    "skipLibCheck": true,                        // Skip type checking of declaration files (faster builds)
+    
+    /* 🎨 Advanced */
+    "experimentalDecorators": true,              // Enable decorators (useful for Sequelize)
+    "emitDecoratorMetadata": true               // Emit metadata for decorators
+  },
+  
+  /* 📂 Include/Exclude */
+  "include": [
+    "src/**/*"                                   // Include all files in src/
+  ],
+  "exclude": [
+    "node_modules",                              // Don't compile node_modules
+    "dist",                                      // Don't compile output directory
+    "**/*.spec.ts",                              // Don't compile test files
+    "**/*.test.ts"
+  ],
+  
+  /* 🔍 Type Acquisition */
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],     // Enable path aliases in ts-node
+    "transpileOnly": true,                       // Faster development (skip type checking)
+    "files": true
+  }
+}
