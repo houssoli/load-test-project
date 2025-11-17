@@ -10,6 +10,7 @@ const mongoRequests = new Counter('mongo_requests');
 const postgresRequests = new Counter('postgres_requests');
 
 // Test scenarios configuration
+// Optimized for single container: Rate limit 5000 req/min (~83 req/sec)
 export const options = {
   scenarios: {
     // Smoke test - verify everything works
@@ -19,29 +20,29 @@ export const options = {
       duration: '30s',
       tags: { test_type: 'smoke' },
     },
-    // Load test - normal traffic
+    // Load test - normal traffic (reduced for single container)
     load: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '1m', target: 20 },   // Ramp-up
-        { duration: '3m', target: 20 },   // Steady state
-        { duration: '1m', target: 0 },    // Ramp-down
+        { duration: '30s', target: 10 },  // Ramp-up to 10 VUs
+        { duration: '2m', target: 10 },   // Steady state at 10 VUs
+        { duration: '30s', target: 0 },   // Ramp-down
       ],
       startTime: '30s',
       tags: { test_type: 'load' },
     },
-    // Stress test - push limits
+    // Stress test - push limits (reduced for single container)
     stress: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '2m', target: 50 },   // Ramp-up to 50
-        { duration: '2m', target: 100 },  // Ramp-up to 100
-        { duration: '3m', target: 100 },  // Hold at 100
-        { duration: '2m', target: 0 },    // Ramp-down
+        { duration: '1m', target: 20 },   // Ramp-up to 20 VUs
+        { duration: '2m', target: 30 },   // Ramp-up to 30 VUs
+        { duration: '2m', target: 30 },   // Hold at 30 VUs
+        { duration: '1m', target: 0 },    // Ramp-down
       ],
-      startTime: '6m',
+      startTime: '4m',
       tags: { test_type: 'stress' },
     },
   },
