@@ -57,8 +57,10 @@ services:
       PG_DATABASE: loadtest_db
       PG_USER: postgres
       PG_PASSWORD: postgres123
-      RATE_LIMIT_WINDOW_MS: 900000
-      RATE_LIMIT_MAX_REQUESTS: 100
+      # Rate limiting: 5000 requests per minute for load testing
+      # Calculation: ~83 requests/sec for K6 tests with multiple VUs
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX_REQUESTS: 5000
     depends_on:
       mongodb:
         condition: service_healthy

@@ -10,6 +10,7 @@ const mongoRequests = new Counter('mongo_requests');
 const postgresRequests = new Counter('postgres_requests');
 
 // Test scenarios configuration
+// Optimized for single container: Rate limit 5000 req/min (~83 req/sec)
 export const options = {
   scenarios: {
     // Smoke test - verify everything works
@@ -19,29 +20,29 @@ export const options = {
       duration: '30s',
       tags: { test_type: 'smoke' },
     },
-    // Load test - normal traffic
+    // Load test - normal traffic (reduced for single container)
     load: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '1m', target: 20 },   // Ramp-up
-        { duration: '3m', target: 20 },   // Steady state
-        { duration: '1m', target: 0 },    // Ramp-down
+        { duration: '30s', target: 10 },  // Ramp-up to 10 VUs
+        { duration: '2m', target: 10 },   // Steady state at 10 VUs
+        { duration: '30s', target: 0 },   // Ramp-down
       ],
       startTime: '30s',
       tags: { test_type: 'load' },
     },
-    // Stress test - push limits
+    // Stress test - push limits (reduced for single container)
     stress: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '2m', target: 50 },   // Ramp-up to 50
-        { duration: '2m', target: 100 },  // Ramp-up to 100
-        { duration: '3m', target: 100 },  // Hold at 100
-        { duration: '2m', target: 0 },    // Ramp-down
+        { duration: '1m', target: 20 },   // Ramp-up to 20 VUs
+        { duration: '2m', target: 30 },   // Ramp-up to 30 VUs
+        { duration: '2m', target: 30 },   // Hold at 30 VUs
+        { duration: '1m', target: 0 },    // Ramp-down
       ],
-      startTime: '6m',
+      startTime: '4m',
       tags: { test_type: 'stress' },
     },
   },
@@ -190,16 +191,46 @@ export function handleSummary(data) {
     'combined-summary.json': JSON.stringify(data, null, 2),
   };
 
+  // Helper function to safely get metric values
+  const getMetricValue = (metricPath, defaultValue = 0) => {
+    try {
+      const parts = metricPath.split('.');
+      let value = data.metrics;
+      for (const part of parts) {
+        if (value && value[part] !== undefined) {
+          value = value[part];
+        } else {
+          return defaultValue;
+        }
+      }
+      return value;
+    } catch (e) {
+      return defaultValue;
+    }
+  };
+
   console.log('\n========== Load Test Summary ==========');
-  console.log(`Total Requests: ${data.metrics.http_reqs.values.count}`);
-  console.log(`MongoDB Requests: ${data.metrics.mongo_requests.values.count}`);
-  console.log(`PostgreSQL Requests: ${data.metrics.postgres_requests.values.count}`);
-  console.log(`Failed Requests: ${(data.metrics.http_req_failed.values.rate * 100).toFixed(2)}%`);
-  console.log(`Average Response Time: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms`);
-  console.log(`P95 Response Time: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms`);
-  console.log(`P99 Response Time: ${data.metrics.http_req_duration.values['p(99)'].toFixed(2)}ms`);
-  console.log(`Average MongoDB Response: ${data.metrics.mongo_response_time.values.avg.toFixed(2)}ms`);
-  console.log(`Average PostgreSQL Response: ${data.metrics.postgres_response_time.values.avg.toFixed(2)}ms`);
+  console.log(`Total Requests: ${getMetricValue('http_reqs.values.count')}`);
+  console.log(`MongoDB Requests: ${getMetricValue('mongo_requests.values.count')}`);
+  console.log(`PostgreSQL Requests: ${getMetricValue('postgres_requests.values.count')}`);
+  
+  const failRate = getMetricValue('http_req_failed.values.rate');
+  console.log(`Failed Requests: ${(failRate * 100).toFixed(2)}%`);
+  
+  const avgDuration = getMetricValue('http_req_duration.values.avg');
+  console.log(`Average Response Time: ${avgDuration.toFixed(2)}ms`);
+  
+  const p95 = getMetricValue('http_req_duration.values.p(95)');
+  console.log(`P95 Response Time: ${p95.toFixed(2)}ms`);
+  
+  const p99 = getMetricValue('http_req_duration.values.p(99)');
+  console.log(`P99 Response Time: ${p99.toFixed(2)}ms`);
+  
+  const mongoAvg = getMetricValue('mongo_response_time.values.avg');
+  console.log(`Average MongoDB Response: ${mongoAvg.toFixed(2)}ms`);
+  
+  const postgresAvg = getMetricValue('postgres_response_time.values.avg');
+  console.log(`Average PostgreSQL Response: ${postgresAvg.toFixed(2)}ms`);
   console.log('======================================\n');
 
   return summary;

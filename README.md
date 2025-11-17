@@ -1,6 +1,8 @@
 # K6 Load Testing Project
 
-A complete Node.js backend with MongoDB and PostgreSQL integration, designed for comprehensive load testing using Grafana K6.
+A complete **TypeScript Node.js backend** with MongoDB and PostgreSQL integration, designed for comprehensive load testing using Grafana K6.
+
+> 🎉 **NEW**: This project is now fully migrated to TypeScript! See [TYPESCRIPT_GUIDE.md](./TYPESCRIPT_GUIDE.md) for details.
 
 ## 🏗️ Architecture
 
@@ -30,10 +32,12 @@ A complete Node.js backend with MongoDB and PostgreSQL integration, designed for
 
 ## 📋 Prerequisites
 
-- **Node.js** >= 16.x
+- **Node.js** >= 18.x
+- **TypeScript** >= 5.x (installed as dev dependency)
 - **MongoDB** >= 5.0
 - **PostgreSQL** >= 13
 - **K6** >= 0.45
+- **Docker** & **Docker Compose** (optional, recommended)
 
 ## 🚀 Quick Start
 
